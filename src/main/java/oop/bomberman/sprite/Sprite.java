@@ -41,7 +41,10 @@ public class Sprite {
 	public static Image balloom_right1 = Sprite.createImage("balloom_right1");
 	public static Image balloom_right2 = Sprite.createImage("balloom_right2");
 	public static Image balloom_right3 = Sprite.createImage("balloom_right3");
-	
+
+	public static Image powerup_bombs = Sprite.createImage("powerup_bombs");
+	public static Image powerup_speed = Sprite.createImage("powerup_speed");
+	public static Image powerup_flames = Sprite.createImage("powerup_flames");	
 
 	public Sprite(Image image) {
 		try {

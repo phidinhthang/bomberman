@@ -16,12 +16,16 @@ import oop.bomberman.entities.Bomb;
 import oop.bomberman.entities.Brick;
 import oop.bomberman.entities.Grass;
 import oop.bomberman.entities.Movable;
+import oop.bomberman.entities.Player;
 import oop.bomberman.entities.Wall;
+import oop.bomberman.entities.powerup.BombItem;
+import oop.bomberman.entities.powerup.FlameItem;
+import oop.bomberman.entities.powerup.SpeedItem;
 import oop.bomberman.level.Level;
 import oop.bomberman.sprite.Sprite;
 
 public class Game {
-	private Movable player;
+	private Player player;
 	private Controller playerController;
 	private Mover playerMover;
 	private Sprite playerSprite;
@@ -31,6 +35,9 @@ public class Game {
 	private List<Wall> walls = new ArrayList<>();
   private List<Grass> grasses = new ArrayList<>();
 	private List<Bomb> bombs = new ArrayList<>();
+	private List<BombItem> bombItems = new ArrayList<>();
+	private List<SpeedItem> speedItems = new ArrayList<>();
+	private List<FlameItem> flameItems = new ArrayList<>();
 	private List<EnemyComp> enemieComps = new ArrayList<>();
 
 	private Level level;
@@ -44,6 +51,10 @@ public class Game {
 
 		this.player.addCollisions(this.bricks);
 		this.player.addCollisions(this.walls);
+		this.player.addCollisions(this.bombs);
+		this.player.addCollisions(this.flameItems);
+		this.player.addCollisions(this.bombItems);
+		this.player.addCollisions(this.speedItems);
 
 		this.enemieComps.forEach(enemy -> {
 			enemy.getEntity().addCollisions(this.bricks);
@@ -58,16 +69,19 @@ public class Game {
 	}
 
 	public void update() {
-		this.bombs.removeIf(bomb -> bomb.removed == true);
+		this.bombs.removeIf(bomb -> bomb.isRemoved() == true);
 		this.bricks.removeIf(brick -> brick.isRemoved() == true);
+		this.enemieComps.removeIf(enemy -> enemy.getEntity().isRemoved() == true);
+		this.player.getCollisions().removeIf(collision -> collision.isRemoved() == true);
 		this.playerMover.update();
     this.playerAnimator.update(playerMover);
 
 		this.enemieComps.forEach(enemy -> {
 			enemy.getMover().update();
 			enemy.getAnimator().update(enemy.getMover());
+			enemy.getEntity().getCollisions().removeIf(collision -> collision.isRemoved() == true);
 		});
-		this.bombs.forEach(bomb -> bomb.update());
+		this.bombs.forEach(bomb -> bomb.update(this.player.getFlameLength()));
 
 		System.out.println(playerController.getInput());
 		if (playerController.getInput().contains("ENTER")) {
@@ -91,6 +105,21 @@ public class Game {
 			Wall wall = this.walls.get(i);
 			wall.draw();
 		}
+		
+		for (int i = 0; i < this.bombItems.size(); i++) {
+			BombItem bombItem = this.bombItems.get(i);
+			bombItem.draw();
+		}
+
+		for (int i = 0; i < this.speedItems.size(); i++) {
+			SpeedItem speedItem = this.speedItems.get(i);
+			speedItem.draw();
+		}
+
+		for (int i = 0; i < this.flameItems.size(); i++) {
+			FlameItem flameItem = this.flameItems.get(i);
+			flameItem.draw();
+		}
 
 		for (int i = 0; i < this.bombs.size(); i++) {
 			Bomb bomb = this.bombs.get(i);
@@ -104,6 +133,7 @@ public class Game {
 				bomb.isRendered = true;
 			}
 		}
+
 
 		for (int i = 0; i < this.enemieComps.size(); i++){
 			EnemyComp enemyComp = this.enemieComps.get(i);
@@ -126,6 +156,18 @@ public class Game {
 		this.walls.add(wall);
 	}
 
+	public void addBombItem(BombItem bombItem) {
+		this.bombItems.add(bombItem);
+	}
+
+	public void addFlameItem(FlameItem flameItem) {
+		this.flameItems.add(flameItem);
+	}
+
+	public void addSpeedItem(SpeedItem speedItem) {
+		this.speedItems.add(speedItem);
+	}
+
 	public void addEnemy(Movable enemy) {
 		EnemyMover mover = new EnemyMover(enemy);
 		EnemyAnimator animator = new BalloomAnimator(enemy.getSprite());
@@ -134,15 +176,18 @@ public class Game {
 		);
 	}
 
-	public void setPlayer(Movable player) {
+	public void setPlayer(Player player) {
 		this.player = player;
 		this.playerController = new Controller(App.scene);
     this.playerMover = new Mover(this.playerController, this.player);
 	}
 
 	public void addBomb() {
-		int tileX = (int) this.player.getX() / 32;
-		int tileY = (int) this.player.getY() / 32;
+		if (!this.player.canPlaceBomb()) return;
+		this.player.placeBomb();
+		
+		int tileX = (int) (this.player.getX() + 12) / 32;
+		int tileY = (int) (this.player.getY() + 8) / 32;
 		int bombPositionX = tileX * 32;
 		int bombPosisionY = tileY * 32;
 
@@ -152,5 +197,12 @@ public class Game {
 		);
 		bomb.addCollisions(this.walls);
 		bomb.addDestroyables(this.bricks);
+		bomb.setOwner(this.player);
+		this.player.addCollision(bomb);
+		this.enemieComps.forEach(enemy -> {
+			enemy.getEntity().addCollision(bomb);
+			bomb.addDestroyable(enemy.getEntity());
+			
+		});
 	}
 }

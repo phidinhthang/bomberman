@@ -10,9 +10,13 @@ import oop.bomberman.App;
 import oop.bomberman.entities.Brick;
 import oop.bomberman.entities.Grass;
 import oop.bomberman.entities.Movable;
+import oop.bomberman.entities.Player;
 import oop.bomberman.entities.Wall;
 import oop.bomberman.game.Game;
 import oop.bomberman.entities.enemy.Balloom;
+import oop.bomberman.entities.powerup.BombItem;
+import oop.bomberman.entities.powerup.FlameItem;
+import oop.bomberman.entities.powerup.SpeedItem;
 
 public class Level {
 	private String[] lineTiles;
@@ -69,12 +73,18 @@ public class Level {
 			this.game.addWall(new Wall(x * 16 * App.scale, y * 16 * App.scale));
 		} else if (c == 'p') {
 			this.game.setPlayer(
-				new Movable(12 * App.scale, 12 * App.scale, (x * 16 + 2) * App.scale , (y * 16 + 4) * App.scale)
+				new Player((x * 16 + 2) * App.scale , (y * 16 + 4) * App.scale)
 			);
 		} else if (c == '*') {
 			this.game.addBrick(new Brick(x * 16 * App.scale, y * 16 * App.scale));
 		} else if (c == '1') {
 			this.game.addEnemy(new Balloom(x * 16 * App.scale, y * 16 * App.scale));
+		} else if (c == 'b') {
+			this.game.addBombItem(new BombItem(x * 16 * App.scale, y * 16 * App.scale));
+		} else if (c == 'f') {
+			this.game.addFlameItem(new FlameItem(x * 16 * App.scale, y * 16 * App.scale));
+		} else if (c == 's') {
+			this.game.addSpeedItem(new SpeedItem(x * 16 * App.scale, y * 16 * App.scale));
 		}
 		Grass grass = new Grass(x * 16 * App.scale, y * 16 * App.scale);
 		grass.getSprite().imageView.toBack();

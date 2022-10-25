@@ -5,7 +5,7 @@ import java.util.List;
 
 import oop.bomberman.sprite.Sprite;
 
-public class Movable extends Entity {
+public abstract class Movable extends Entity {
 	private double velocity = 2;
 	private boolean isFacingRight = false;
 	private boolean isFacingDown = false;
@@ -82,6 +82,10 @@ public class Movable extends Entity {
 		this.collisions.add(entity);
 	}
 
+	public void removeCollision(Entity entity) {
+		this.collisions.remove(entity);
+	}
+
 	public void addCollisions(List<? extends Entity> entities) {
 		this.collisions.addAll(entities);
 	}
@@ -101,6 +105,7 @@ public class Movable extends Entity {
 					(this.getX() > c.getX() && this.getX() + this.getWidth() < c.getX() + c.getWidth()) ||
 					(this.getX() + this.getWidth() > c.getX() && this.getX() + this.getWidth() < c.getX() + c.getWidth()) )) {
 						collided = "UP";
+						this.onCollision(c);
 						System.out.println(": Collided Upward");
 						return "UP";
 				}
@@ -111,6 +116,7 @@ public class Movable extends Entity {
 							(this.getX() > c.getX() && this.getX() + this.getWidth() < c.getX() + c.getWidth()) ||
 							(this.getX() + this.getWidth() > c.getX()&& this.getX() + this.getWidth() < c.getX() + c.getWidth()) )) {
 								collided = "DOWN";
+								this.onCollision(c);
 								System.out.println(": Collided downward");
 								return "DOWN";
         }
@@ -132,6 +138,7 @@ public class Movable extends Entity {
                         (this.getY() + this.getHeight() > c.getY() && this.getY() + this.getHeight() < c.getY() + c.getHeight()))) {
 
                     collided = "RIGHT";
+										this.onCollision(c);
                     System.out.println(": Collided rightward");
 										return "RIGHT";
                 }
@@ -142,6 +149,7 @@ public class Movable extends Entity {
                   (this.getY() > c.getY() && this.getY() + this.getHeight() < c.getY() + c.getHeight()) ||
                   (this.getY() + this.getHeight() > c.getY() && this.getY() + this.getHeight() < c.getY() + c.getHeight()))) {
                     collided = "LEFT";
+										this.onCollision(c);
                     System.out.println("Collided leftward");
 										return "LEFT";
                 }
@@ -149,4 +157,7 @@ public class Movable extends Entity {
         }
         return collided;
     }
+
+
+	protected abstract void onCollision(Entity entity);
 }

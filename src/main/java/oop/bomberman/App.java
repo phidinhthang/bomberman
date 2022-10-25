@@ -29,7 +29,6 @@ public class App extends Application {
         stage.setScene(scene);
         this.stage = stage;
 
-
         game = new Game();
         game.init();
 

@@ -9,10 +9,9 @@ import oop.bomberman.sprite.Sprite;
 public class Bomb extends Entity {
 	private int timeToExplosing = 120;
 	private int timeAfterExplosion = 60;
-	private int frameLength = 2;
 	private int currentTime = 0;
+	private Player owner;
 	public boolean explosed = false;
-	public boolean removed = false;
 	private List<Frame> frames = new ArrayList<>();
 	private List<Entity> collisions = new  ArrayList<>();
 	private List<Entity> destroyables = new ArrayList<>();
@@ -22,25 +21,22 @@ public class Bomb extends Entity {
 		super(32, 32, x, y, Sprite.bomb);
 	}
 
-	public void update() {
+	public void update(int flameLength) {
 		this.destroy();
 		if (!this.explosed) {
 			if (this.currentTime < this.timeToExplosing) {
 				this.currentTime++;
 			} else {
 				this.explosed = true;
-				this.createFrames();
+				this.createFrames(flameLength);
 				this.getSprite().imageView.setImage(Sprite.bomb_exploded);
 				this.currentTime = 0;
 			}
-		} else if (!this.removed) {
+		} else if (!this.isRemoved()) {
 			if (this.currentTime < this.timeAfterExplosion) {
 				this.currentTime++;
 			} else {
-				this.removed = true;
-				App.root.getChildren().remove(this.getSprite().imageView);
-				this.frames.forEach(frame -> App.root.getChildren().remove(frame.getSprite().imageView));
-				this.frames.clear();
+				this.remove();
 			}
 		}
 	}
@@ -55,7 +51,19 @@ public class Bomb extends Entity {
 		});
 	}
 
-	public void createFrames() {
+	public void setOwner(Player owner) {
+		this.owner = owner;
+	}
+
+	public void remove() {
+		this.owner.afterBombExplosed();
+		super.remove();
+		App.root.getChildren().remove(this.getSprite().imageView);
+		this.frames.forEach(frame -> App.root.getChildren().remove(frame.getSprite().imageView));
+		this.frames.clear();
+	}
+
+	public void createFrames(int frameLength) {
 		int currentFrameLevel = 1;
 		int bombTileX = this.getTileX();
 		int bombTileY = this.getTileY();
@@ -64,18 +72,18 @@ public class Bomb extends Entity {
 		boolean hasCollisionLeft = false;
 		boolean hasCollisionRight = false;
 
-		while (currentFrameLevel++ <= this.frameLength) {
+		while (currentFrameLevel <= frameLength) {
 			int frameUpTileX = bombTileX;
-			int frameUpTileY = bombTileY - 1;
+			int frameUpTileY = bombTileY - currentFrameLevel;
 			Frame frameUp = Frame.createFromTilePosition(frameUpTileX, frameUpTileY, Sprite.explosion_vertical);
-			int frameLeftTileX = bombTileX - 1;
+			int frameLeftTileX = bombTileX - currentFrameLevel;
 			int frameLeftTileY = bombTileY;
 			Frame frameLeft = Frame.createFromTilePosition(frameLeftTileX, frameLeftTileY, Sprite.explosion_horizontal);
-			int frameRightTileX = bombTileX + 1;
+			int frameRightTileX = bombTileX + currentFrameLevel;
 			int frameRightTileY = bombTileY;
 			Frame frameRight = Frame.createFromTilePosition(frameRightTileX, frameRightTileY, Sprite.explosion_horizontal);
 			int frameDownTileX = bombTileX;
-			int frameDownTileY = bombTileY + 1;
+			int frameDownTileY = bombTileY + currentFrameLevel;
 			Frame frameDown = Frame.createFromTilePosition(frameDownTileX, frameDownTileY, Sprite.explosion_vertical);
 			for (Entity collision: this.collisions) {
 				if (collision.hasSameTilePosition(frameUp)) {
@@ -104,6 +112,8 @@ public class Bomb extends Entity {
 			if (!hasCollisionRight) {
 				this.frames.add(frameRight);
 			}
+
+			currentFrameLevel++;
 		}
 	}
 
@@ -117,5 +127,9 @@ public class Bomb extends Entity {
 
 	public void addDestroyables(List<? extends Entity>destroyables) {
 		this.destroyables.addAll(destroyables);
+	}
+
+	public void addDestroyable(Entity destroyable) {
+		this.destroyables.add(destroyable);
 	}
 }
