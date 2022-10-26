@@ -2,6 +2,8 @@ package oop.bomberman.game;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javafx.scene.image.ImageView;
 import oop.bomberman.App;
@@ -198,11 +200,17 @@ public class Game {
 		bomb.addCollisions(this.walls);
 		bomb.addDestroyables(this.bricks);
 		bomb.setOwner(this.player);
-		this.player.addCollision(bomb);
-		this.enemieComps.forEach(enemy -> {
-			enemy.getEntity().addCollision(bomb);
-			bomb.addDestroyable(enemy.getEntity());
-			
-		});
+
+		Timer timer = new Timer();
+		timer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				player.addCollision(bomb);
+				enemieComps.forEach(enemy -> {
+					enemy.getEntity().addCollision(bomb);
+					bomb.addDestroyable(enemy.getEntity());
+				});
+			}
+		}, 400);
 	}
 }
